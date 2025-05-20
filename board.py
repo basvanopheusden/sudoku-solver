@@ -131,7 +131,10 @@ class Board:
         """
 
         if record_steps and _steps is None:
-            _steps = [[cell for cell in row] for row in self.grid]
+            # Start the step list with a deep copy of the initial grid so
+            # callers receive a sequence of full board states rather than a
+            # mix of rows and grids.
+            _steps = [[row[:] for row in self.grid]]
 
         def apply_determined():
             actions = []

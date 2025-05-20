@@ -199,6 +199,26 @@ class Board:
             rows.append(row)
         return "\n".join(rows)
 
+    def is_solved(self):
+        """Return ``True`` if the board is completely and validly solved."""
+        digits = set(range(1, 10))
+        for r in range(9):
+            if set(self._row_values(r)) != digits:
+                return False
+        for c in range(9):
+            if set(self._column_values(c)) != digits:
+                return False
+        for br in range(0, 9, 3):
+            for bc in range(0, 9, 3):
+                values = [
+                    self.grid[r][c]
+                    for r in range(br, br + 3)
+                    for c in range(bc, bc + 3)
+                ]
+                if set(values) != digits:
+                    return False
+        return True
+
     def solve_with_counter(self):
         """Solve the board and return a tuple of (solved, count)."""
         counter = [0]

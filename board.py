@@ -122,8 +122,16 @@ class Board:
                     return r, c
         return None
 
-    def solve(self):
-        """Solve the board using backtracking with simple heuristics."""
+    def solve(self, record_steps=False, _steps=None):
+        """Solve the board using backtracking with simple heuristics.
+
+        If ``record_steps`` is True, every intermediate board state is appended
+        to a list which is returned together with the solve result. This can be
+        used to visualise the solving process.
+        """
+
+        if record_steps and _steps is None:
+            _steps = [[cell for cell in row] for row in self.grid]
 
         def apply_determined():
             actions = []
@@ -134,6 +142,8 @@ class Board:
                     if self.grid[r][c] == 0:
                         self.grid[r][c] = v
                         actions.append((r, c))
+                        if record_steps:
+                            _steps.append([row[:] for row in self.grid])
                         progress = True
                 if not progress:
                     break
@@ -149,23 +159,33 @@ class Board:
                     if not options:
                         for ar, ac in actions_applied:
                             self.grid[ar][ac] = 0
-                        return False
+                            if record_steps:
+                                _steps.append([row[:] for row in self.grid])
+                        return (False, _steps) if record_steps else False
                     empties.append((len(options), r, c, options))
 
         if not empties:
-            return True
+            return (True, _steps) if record_steps else True
 
         empties.sort(key=lambda x: x[0])
         _, row, col, options = empties[0]
         for value in options:
             self.grid[row][col] = value
-            if self.solve():
-                return True
+            if record_steps:
+                _steps.append([row[:] for row in self.grid])
+            result = self.solve(record_steps=record_steps, _steps=_steps)
+            solved = result[0] if record_steps else result
+            if solved:
+                return (True, _steps) if record_steps else True
             self.grid[row][col] = 0
+            if record_steps:
+                _steps.append([row[:] for row in self.grid])
 
         for ar, ac in actions_applied:
             self.grid[ar][ac] = 0
-        return False
+            if record_steps:
+                _steps.append([row[:] for row in self.grid])
+        return (False, _steps) if record_steps else False
 
     def __str__(self):
         rows = []

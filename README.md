@@ -31,7 +31,7 @@ actions = board.determined_actions()
 print(actions)
 ```
 
-To run the test suite:
+To run the test suite, execute:
 
 ```bash
 pytest

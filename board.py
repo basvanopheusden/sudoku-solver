@@ -28,6 +28,14 @@ class Board:
         else:
             if len(grid) != 9 or any(len(row) != 9 for row in grid):
                 raise ValueError("Grid must be 9x9")
+
+            for row in grid:
+                for cell in row:
+                    if cell is not None:
+                        value = int(cell)
+                        if value < 0 or value > 9:
+                            raise ValueError("Cell values must be between 0 and 9")
+
             self.grid = [[0 if cell is None else int(cell) for cell in row] for row in grid]
 
     def _row_values(self, row):

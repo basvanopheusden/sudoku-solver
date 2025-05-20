@@ -7,7 +7,7 @@ puzzles.
 ## Usage
 
 ```python
-from board import Board
+from sudoku_solver import Board
 
 # 0 represents an empty cell
 puzzle = [

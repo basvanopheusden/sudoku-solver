@@ -4,8 +4,7 @@
 import argparse
 from copy import deepcopy
 
-from board import Board
-import example_boards
+from sudoku_solver import Board, example_boards
 
 
 def main():

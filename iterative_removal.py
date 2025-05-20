@@ -4,7 +4,7 @@
 from copy import deepcopy
 import random
 
-from board import Board
+from sudoku_solver import Board
 
 # Solved board taken from tests
 SOLVED = [

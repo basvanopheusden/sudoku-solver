@@ -1,10 +1,6 @@
-import os
-import sys
-
 import pytest
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from board import Board
+from sudoku_solver import Board
 
 
 def test_single_possible_value():

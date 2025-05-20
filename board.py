@@ -29,6 +29,8 @@ class Board:
             if len(grid) != 9 or any(len(row) != 9 for row in grid):
                 raise ValueError("Grid must be 9x9")
             self.grid = [[0 if cell is None else int(cell) for cell in row] for row in grid]
+        # Track how many backtracking steps are performed during solving.
+        self.backtrack_count = 0
 
     def _row_values(self, row):
         return self.grid[row]
@@ -123,49 +125,62 @@ class Board:
         return None
 
     def solve(self):
-        """Solve the board using backtracking with simple heuristics."""
+        """Solve the board using backtracking with simple heuristics.
 
-        def apply_determined():
-            actions = []
-            while True:
-                moves = find_determined_squares(self)
-                progress = False
-                for r, c, v in moves:
+        The :attr:`backtrack_count` attribute is reset at the start of each
+        call and increments whenever the solver has to undo a guessed value
+        because it led to a dead end.  This provides a rough measure of the
+        search effort required to solve the puzzle.
+        """
+
+        # Reset counter for this solve attempt
+        self.backtrack_count = 0
+
+        def _solve_recursive():
+            def apply_determined():
+                actions = []
+                while True:
+                    moves = find_determined_squares(self)
+                    progress = False
+                    for r, c, v in moves:
+                        if self.grid[r][c] == 0:
+                            self.grid[r][c] = v
+                            actions.append((r, c))
+                            progress = True
+                    if not progress:
+                        break
+                return actions
+
+            actions_applied = apply_determined()
+
+            empties = []
+            for r in range(9):
+                for c in range(9):
                     if self.grid[r][c] == 0:
-                        self.grid[r][c] = v
-                        actions.append((r, c))
-                        progress = True
-                if not progress:
-                    break
-            return actions
+                        options = self.valid_values_for(r, c)
+                        if not options:
+                            for ar, ac in actions_applied:
+                                self.grid[ar][ac] = 0
+                            return False
+                        empties.append((len(options), r, c, options))
 
-        actions_applied = apply_determined()
-
-        empties = []
-        for r in range(9):
-            for c in range(9):
-                if self.grid[r][c] == 0:
-                    options = self.valid_values_for(r, c)
-                    if not options:
-                        for ar, ac in actions_applied:
-                            self.grid[ar][ac] = 0
-                        return False
-                    empties.append((len(options), r, c, options))
-
-        if not empties:
-            return True
-
-        empties.sort(key=lambda x: x[0])
-        _, row, col, options = empties[0]
-        for value in options:
-            self.grid[row][col] = value
-            if self.solve():
+            if not empties:
                 return True
-            self.grid[row][col] = 0
 
-        for ar, ac in actions_applied:
-            self.grid[ar][ac] = 0
-        return False
+            empties.sort(key=lambda x: x[0])
+            _, row, col, options = empties[0]
+            for value in options:
+                self.grid[row][col] = value
+                if _solve_recursive():
+                    return True
+                self.grid[row][col] = 0
+                self.backtrack_count += 1
+
+            for ar, ac in actions_applied:
+                self.grid[ar][ac] = 0
+            return False
+
+        return _solve_recursive()
 
     def __str__(self):
         rows = []

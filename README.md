@@ -4,6 +4,14 @@ This repository contains a minimal Sudoku solving library written in Python.
 The `Board` class implements a simple backtracking solver for 9x9 Sudoku
 puzzles.
 
+## Installation
+
+Install the dependencies with:
+
+```bash
+pip install -r requirements.txt
+```
+
 ## Usage
 
 ```python
@@ -55,8 +63,9 @@ You can also record solving steps programmatically using
 ``board.solve(record_steps=True)`` and pass the resulting step list to
 ``animation.animate_steps`` for custom animations.
 
-To run the test suite, execute:
+To run the test suite, first install the dependencies and then execute:
 
 ```bash
+pip install -r requirements.txt
 pytest
 ```

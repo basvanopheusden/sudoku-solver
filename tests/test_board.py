@@ -38,6 +38,13 @@ def test_invalid_grid_size():
         Board([[0] * 8 for _ in range(9)])
 
 
+def test_invalid_cell_value():
+    bad_grid = [[0] * 9 for _ in range(9)]
+    bad_grid[0][0] = 10
+    with pytest.raises(ValueError):
+        Board(bad_grid)
+
+
 def test_find_empty_and_valid_move():
     board = Board(create_puzzle())
     # First empty cell should be at row 0, col 2

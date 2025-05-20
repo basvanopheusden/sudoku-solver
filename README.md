@@ -25,6 +25,10 @@ puzzle = [
 board = Board(puzzle)
 board.solve()
 print(board)
+
+# Find logically determined actions
+actions = board.determined_actions()
+print(actions)
 ```
 
 To run the test suite:

@@ -45,6 +45,60 @@ class Board:
             return False
         return True
 
+    def valid_values_for(self, row, col):
+        """Return all valid values for the given empty cell."""
+        if self.grid[row][col] != 0:
+            return []
+        return [v for v in range(1, 10) if self.is_valid_move(row, col, v)]
+
+    def determined_actions(self):
+        """Return a list of all logically forced moves.
+
+        Each action is a ``(row, col, value)`` tuple describing a placement
+        that is forced by the current state of the board. This includes cells
+        that have only one possible value as well as values that can only
+        appear in one cell of a row, column or 3x3 box.
+        """
+
+        possible = [[self.valid_values_for(r, c) for c in range(9)] for r in range(9)]
+        actions = set()
+
+        # Cells with a single possible value
+        for r in range(9):
+            for c in range(9):
+                if len(possible[r][c]) == 1:
+                    actions.add((r, c, possible[r][c][0]))
+
+        # Unique position for a value in any row
+        for r in range(9):
+            for value in range(1, 10):
+                cells = [c for c in range(9) if value in possible[r][c]]
+                if len(cells) == 1:
+                    actions.add((r, cells[0], value))
+
+        # Unique position for a value in any column
+        for c in range(9):
+            for value in range(1, 10):
+                cells = [r for r in range(9) if value in possible[r][c]]
+                if len(cells) == 1:
+                    actions.add((cells[0], c, value))
+
+        # Unique position for a value in any 3x3 box
+        for box_row in range(3):
+            for box_col in range(3):
+                coords = [
+                    (r, c)
+                    for r in range(box_row * 3, box_row * 3 + 3)
+                    for c in range(box_col * 3, box_col * 3 + 3)
+                ]
+                for value in range(1, 10):
+                    cells = [(r, c) for r, c in coords if value in possible[r][c]]
+                    if len(cells) == 1:
+                        r, c = cells[0]
+                        actions.add((r, c, value))
+
+        return sorted(actions)
+
     def find_empty(self):
         """Return the coordinates of the next empty cell or None if full."""
         for r in range(9):

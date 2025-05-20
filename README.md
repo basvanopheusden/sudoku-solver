@@ -34,5 +34,5 @@ print(actions)
 To run the test suite:
 
 ```bash
-python run_tests.py
+pytest
 ```

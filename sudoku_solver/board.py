@@ -1,15 +1,24 @@
+from .utils import (
+    iter_coords,
+    iter_box_coords,
+    copy_grid,
+    create_empty_grid,
+    validate_grid,
+    normalize_grid,
+)
+
+
 def find_determined_squares(board):
     """Return all cells with exactly one possible value.
 
     Each entry in the returned list is a ``(row, col, value)`` tuple.
     """
     moves = []
-    for r in range(9):
-        for c in range(9):
-            if board.grid[r][c] == 0:
-                opts = board.valid_values_for(r, c)
-                if len(opts) == 1:
-                    moves.append((r, c, opts[0]))
+    for r, c in iter_coords():
+        if board.grid[r][c] == 0:
+            opts = board.valid_values_for(r, c)
+            if len(opts) == 1:
+                moves.append((r, c, opts[0]))
     return moves
 
 
@@ -24,19 +33,10 @@ class Board:
                 as 0 which means empty.
         """
         if grid is None:
-            self.grid = [[0 for _ in range(9)] for _ in range(9)]
+            self.grid = create_empty_grid()
         else:
-            if len(grid) != 9 or any(len(row) != 9 for row in grid):
-                raise ValueError("Grid must be 9x9")
-
-            for row in grid:
-                for cell in row:
-                    if cell is not None:
-                        value = int(cell)
-                        if value < 0 or value > 9:
-                            raise ValueError("Cell values must be between 0 and 9")
-
-            self.grid = [[0 if cell is None else int(cell) for cell in row] for row in grid]
+            validate_grid(grid)
+            self.grid = normalize_grid(grid)
 
     def _row_values(self, row):
         return self.grid[row]
@@ -46,13 +46,9 @@ class Board:
 
     def _box_values(self, row, col):
         """Return the values in the 3x3 box for (row, col)."""
-        box_row = (row // 3) * 3
-        box_col = (col // 3) * 3
-        return [
-            self.grid[r][c]
-            for r in range(box_row, box_row + 3)
-            for c in range(box_col, box_col + 3)
-        ]
+        box_row = row // 3
+        box_col = col // 3
+        return [self.grid[r][c] for r, c in iter_box_coords(box_row, box_col)]
 
     def is_valid_move(self, row, col, value):
         """Check if placing value at (row, col) is valid."""
@@ -87,10 +83,9 @@ class Board:
         actions = set()
 
         # Cells with a single possible value
-        for r in range(9):
-            for c in range(9):
-                if len(possible[r][c]) == 1:
-                    actions.add((r, c, possible[r][c][0]))
+        for r, c in iter_coords():
+            if len(possible[r][c]) == 1:
+                actions.add((r, c, possible[r][c][0]))
 
         # Unique position for a value in any row
         for r in range(9):
@@ -109,11 +104,7 @@ class Board:
         # Unique position for a value in any 3x3 box
         for box_row in range(3):
             for box_col in range(3):
-                coords = [
-                    (r, c)
-                    for r in range(box_row * 3, box_row * 3 + 3)
-                    for c in range(box_col * 3, box_col * 3 + 3)
-                ]
+                coords = list(iter_box_coords(box_row, box_col))
                 for value in range(1, 10):
                     cells = [(r, c) for r, c in coords if value in possible[r][c]]
                     if len(cells) == 1:
@@ -124,11 +115,38 @@ class Board:
 
     def find_empty(self):
         """Return the coordinates of the next empty cell or None if full."""
-        for r in range(9):
-            for c in range(9):
-                if self.grid[r][c] == 0:
-                    return r, c
+        for r, c in iter_coords():
+            if self.grid[r][c] == 0:
+                return r, c
         return None
+
+    def _apply_determined(self, record_steps=False, steps=None):
+        """Fill all logically forced cells.
+
+        Returns a list of coordinates that were filled so they can be reverted
+        later if backtracking occurs.
+        """
+        actions = []
+        while True:
+            moves = find_determined_squares(self)
+            progress = False
+            for r, c, v in moves:
+                if self.grid[r][c] == 0 and self.is_valid_move(r, c, v):
+                    self.grid[r][c] = v
+                    actions.append((r, c))
+                    if record_steps and steps is not None:
+                        steps.append(copy_grid(self.grid))
+                    progress = True
+            if not progress:
+                break
+        return actions
+
+    def _revert_actions(self, actions, record_steps=False, steps=None):
+        """Undo actions previously returned by ``_apply_determined``."""
+        for r, c in actions:
+            self.grid[r][c] = 0
+            if record_steps and steps is not None:
+                steps.append(copy_grid(self.grid))
 
     def solve(self, record_steps=False, _steps=None, counter=None):
         """Solve the board using backtracking with simple heuristics.
@@ -142,38 +160,18 @@ class Board:
             # Start the step list with a deep copy of the initial grid so
             # callers receive a sequence of full board states rather than a
             # mix of rows and grids.
-            _steps = [[row[:] for row in self.grid]]
+            _steps = [copy_grid(self.grid)]
 
-        def apply_determined():
-            actions = []
-            while True:
-                moves = find_determined_squares(self)
-                progress = False
-                for r, c, v in moves:
-                    if self.grid[r][c] == 0 and self.is_valid_move(r, c, v):
-                        self.grid[r][c] = v
-                        actions.append((r, c))
-                        if record_steps:
-                            _steps.append([row[:] for row in self.grid])
-                        progress = True
-                if not progress:
-                    break
-            return actions
-
-        actions_applied = apply_determined()
+        actions_applied = self._apply_determined(record_steps, _steps)
 
         empties = []
-        for r in range(9):
-            for c in range(9):
-                if self.grid[r][c] == 0:
-                    options = self.valid_values_for(r, c)
-                    if not options:
-                        for ar, ac in actions_applied:
-                            self.grid[ar][ac] = 0
-                            if record_steps:
-                                _steps.append([row[:] for row in self.grid])
-                        return (False, _steps) if record_steps else False
-                    empties.append((len(options), r, c, options))
+        for r, c in iter_coords():
+            if self.grid[r][c] == 0:
+                options = self.valid_values_for(r, c)
+                if not options:
+                    self._revert_actions(actions_applied, record_steps, _steps)
+                    return (False, _steps) if record_steps else False
+                empties.append((len(options), r, c, options))
 
         if not empties:
             solved = self.is_solved()
@@ -186,7 +184,7 @@ class Board:
                 continue
             self.grid[row][col] = value
             if record_steps:
-                _steps.append([row[:] for row in self.grid])
+                _steps.append(copy_grid(self.grid))
             if counter is not None:
                 counter[0] += 1
             result = self.solve(record_steps=record_steps, _steps=_steps, counter=counter)
@@ -195,12 +193,9 @@ class Board:
                 return (True, _steps) if record_steps else True
             self.grid[row][col] = 0
             if record_steps:
-                _steps.append([row[:] for row in self.grid])
+                _steps.append(copy_grid(self.grid))
 
-        for ar, ac in actions_applied:
-            self.grid[ar][ac] = 0
-            if record_steps:
-                _steps.append([row[:] for row in self.grid])
+        self._revert_actions(actions_applied, record_steps, _steps)
         return (False, _steps) if record_steps else False
 
     def __str__(self):

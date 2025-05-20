@@ -9,6 +9,7 @@ from .animation import (
     YELLOW,
 )
 from . import example_boards
+from .utils import copy_grid
 
 __all__ = [
     "Board",
@@ -19,4 +20,5 @@ __all__ = [
     "RED",
     "YELLOW",
     "example_boards",
+    "copy_grid",
 ]

@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 """Iteratively remove numbers from a solved board and measure solver effort."""
 
-from copy import deepcopy
 import random
 
 from sudoku_solver import Board
+from sudoku_solver.utils import copy_grid
 
 # Solved board taken from tests
 SOLVED = [
@@ -21,7 +21,7 @@ SOLVED = [
 
 
 def main():
-    puzzle = deepcopy(SOLVED)
+    puzzle = copy_grid(SOLVED)
     cells = [(r, c) for r in range(9) for c in range(9)]
     random.shuffle(cells)
 
@@ -31,7 +31,7 @@ def main():
         puzzle[r][c] = 0
         removed += 1
 
-        board = Board(deepcopy(puzzle))
+        board = Board(copy_grid(puzzle))
         solved, count = board.solve_with_counter()
         assert solved, "Board became unsolvable"
         assert board.is_solved(), "Solved board is invalid"

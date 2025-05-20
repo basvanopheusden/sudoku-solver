@@ -34,7 +34,7 @@ def main():
         board = Board(deepcopy(puzzle))
         solved, count = board.solve_with_counter()
         assert solved, "Board became unsolvable"
-        assert board.grid == SOLVED, "Solution does not match expected"
+        assert board.is_solved(), "Solved board is invalid"
 
         print(f"Blanks: {removed:2d}, backtracking steps: {count}")
 

@@ -78,3 +78,12 @@ def test_record_steps_returns_sequence_of_grids():
         assert isinstance(grid, list) and len(grid) == 9
         for row in grid:
             assert isinstance(row, list) and len(row) == 9
+
+
+def test_is_solved_method():
+    unsolved = Board(create_puzzle())
+    assert not unsolved.is_solved()
+    solved_board = Board(EXPECTED_SOLUTION)
+    assert solved_board.is_solved()
+    unsolved.solve()
+    assert unsolved.is_solved()

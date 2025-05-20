@@ -1,12 +1,7 @@
-import os
-import sys
 import pytest
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-
-from board import Board
-import example_boards
-from animation import _format_grid, GREEN, RED, YELLOW
+from sudoku_solver import Board, example_boards
+from sudoku_solver.animation import _format_grid, GREEN, RED, YELLOW
 
 
 EXPECTED_SOLUTION = [

@@ -3,9 +3,8 @@
 
 from copy import deepcopy
 
-from board import Board
-from animation import animate_steps
-import example_boards
+from sudoku_solver import Board, example_boards
+from sudoku_solver.animation import animate_steps
 
 
 def main():

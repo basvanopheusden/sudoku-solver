@@ -1,1 +1,1 @@
-To run tests, execute run_tests.py
+To run tests, use pytest

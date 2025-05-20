@@ -122,7 +122,7 @@ class Board:
                     return r, c
         return None
 
-    def solve(self, record_steps=False, _steps=None):
+    def solve(self, record_steps=False, _steps=None, counter=None):
         """Solve the board using backtracking with simple heuristics.
 
         If ``record_steps`` is True, every intermediate board state is appended
@@ -173,7 +173,9 @@ class Board:
             self.grid[row][col] = value
             if record_steps:
                 _steps.append([row[:] for row in self.grid])
-            result = self.solve(record_steps=record_steps, _steps=_steps)
+            if counter is not None:
+                counter[0] += 1
+            result = self.solve(record_steps=record_steps, _steps=_steps, counter=counter)
             solved = result[0] if record_steps else result
             if solved:
                 return (True, _steps) if record_steps else True
@@ -193,3 +195,9 @@ class Board:
             row = " ".join(str(val) if val != 0 else "." for val in self.grid[r])
             rows.append(row)
         return "\n".join(rows)
+
+    def solve_with_counter(self):
+        """Solve the board and return a tuple of (solved, count)."""
+        counter = [0]
+        solved = self.solve(counter=counter)
+        return solved, counter[0]

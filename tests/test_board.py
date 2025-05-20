@@ -67,3 +67,14 @@ def test_solver_succeeds_and_board_representation():
         " ".join(str(c) for c in row) for row in EXPECTED_SOLUTION
     )
     assert str(board) == expected_str
+
+
+def test_record_steps_returns_sequence_of_grids():
+    board = Board(create_puzzle())
+    solved, steps = board.solve(record_steps=True)
+    assert isinstance(steps, list)
+    assert steps  # at least the initial board
+    for grid in steps:
+        assert isinstance(grid, list) and len(grid) == 9
+        for row in grid:
+            assert isinstance(row, list) and len(row) == 9

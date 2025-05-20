@@ -47,6 +47,15 @@ def test_find_empty_and_valid_move():
     assert not board.is_valid_move(0, 2, 5)
 
 
+def test_board_str_uses_dot_for_zero_cells():
+    puzzle = create_puzzle()
+    board = Board(puzzle)
+    expected_str = "\n".join(
+        " ".join(str(c) if c != 0 else "." for c in row) for row in puzzle
+    )
+    assert str(board) == expected_str
+
+
 def test_solver_succeeds_and_board_representation():
     board = Board(create_puzzle())
     assert board.solve()

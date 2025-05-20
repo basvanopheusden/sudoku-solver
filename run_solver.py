@@ -2,9 +2,8 @@
 """Command line helper to solve one of the example Sudoku boards."""
 
 import argparse
-from copy import deepcopy
-
 from sudoku_solver import Board, example_boards
+from sudoku_solver.utils import copy_grid
 
 
 def main():
@@ -16,7 +15,7 @@ def main():
     )
     args = parser.parse_args()
 
-    grid = deepcopy(example_boards.BOARDS[args.board])
+    grid = copy_grid(example_boards.BOARDS[args.board])
     board = Board(grid)
 
     print("Initial board:\n")

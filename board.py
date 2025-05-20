@@ -1,3 +1,18 @@
+def find_determined_squares(board):
+    """Return all cells with exactly one possible value.
+
+    Each entry in the returned list is a ``(row, col, value)`` tuple.
+    """
+    moves = []
+    for r in range(9):
+        for c in range(9):
+            if board.grid[r][c] == 0:
+                opts = board.valid_values_for(r, c)
+                if len(opts) == 1:
+                    moves.append((r, c, opts[0]))
+    return moves
+
+
 class Board:
     """Represents a 9x9 sudoku board and provides a simple solver."""
 
@@ -108,17 +123,48 @@ class Board:
         return None
 
     def solve(self):
-        """Attempt to solve the board using backtracking."""
-        empty = self.find_empty()
-        if empty is None:
+        """Solve the board using backtracking with simple heuristics."""
+
+        def apply_determined():
+            actions = []
+            while True:
+                moves = find_determined_squares(self)
+                progress = False
+                for r, c, v in moves:
+                    if self.grid[r][c] == 0:
+                        self.grid[r][c] = v
+                        actions.append((r, c))
+                        progress = True
+                if not progress:
+                    break
+            return actions
+
+        actions_applied = apply_determined()
+
+        empties = []
+        for r in range(9):
+            for c in range(9):
+                if self.grid[r][c] == 0:
+                    options = self.valid_values_for(r, c)
+                    if not options:
+                        for ar, ac in actions_applied:
+                            self.grid[ar][ac] = 0
+                        return False
+                    empties.append((len(options), r, c, options))
+
+        if not empties:
             return True
-        row, col = empty
-        for value in range(1, 10):
-            if self.is_valid_move(row, col, value):
-                self.grid[row][col] = value
-                if self.solve():
-                    return True
-                self.grid[row][col] = 0
+
+        empties.sort(key=lambda x: x[0])
+        _, row, col, options = empties[0]
+        for value in options:
+            self.grid[row][col] = value
+            if self.solve():
+                return True
+            self.grid[row][col] = 0
+
+        for ar, ac in actions_applied:
+            self.grid[ar][ac] = 0
         return False
 
     def __str__(self):

@@ -142,7 +142,7 @@ class Board:
                 moves = find_determined_squares(self)
                 progress = False
                 for r, c, v in moves:
-                    if self.grid[r][c] == 0:
+                    if self.grid[r][c] == 0 and self.is_valid_move(r, c, v):
                         self.grid[r][c] = v
                         actions.append((r, c))
                         if record_steps:
@@ -168,11 +168,14 @@ class Board:
                     empties.append((len(options), r, c, options))
 
         if not empties:
-            return (True, _steps) if record_steps else True
+            solved = self.is_solved()
+            return (solved, _steps) if record_steps else solved
 
         empties.sort(key=lambda x: x[0])
         _, row, col, options = empties[0]
         for value in options:
+            if not self.is_valid_move(row, col, value):
+                continue
             self.grid[row][col] = value
             if record_steps:
                 _steps.append([row[:] for row in self.grid])

@@ -31,6 +31,30 @@ actions = board.determined_actions()
 print(actions)
 ```
 
+## Command line helpers
+
+Several small scripts are provided for experimenting with the solver without
+writing code:
+
+- `run_solver.py` solves one of the example puzzles.  Use `--help` to see the
+  available board names (``easy``, ``medium`` and ``hard``) and run, for
+  example:
+
+  ```bash
+  python run_solver.py medium
+  ```
+
+- `animate_solver.py` visualises how the solver progresses on the ``hard``
+  puzzle by animating each recorded board state in the terminal.
+
+- `iterative_removal.py` repeatedly removes numbers from a solved puzzle while
+  measuring the amount of backtracking required to keep solving it.  This
+  script can be used to get a feel for the solver's efficiency.
+
+You can also record solving steps programmatically using
+``board.solve(record_steps=True)`` and pass the resulting step list to
+``animation.animate_steps`` for custom animations.
+
 To run the test suite, execute:
 
 ```bash
